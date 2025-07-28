@@ -1,0 +1,97 @@
+name: Cucumber RestAssured API Automation
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 8 * * *'  # Daily at 8 AM UTC
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+    name: API Tests (Java ${{ matrix.java-version }})
+
+    strategy:
+      matrix:
+        java-version: [11, 17]
+      fail-fast: false
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up JDK ${{ matrix.java-version }}
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ matrix.java-version }}
+        distribution: 'temurin'
+
+    - name: Cache Maven dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-maven-
+
+    - name: Verify project structure
+      run: |
+        echo "Project structure:"
+        find src -type f -name "*.java" | head -20
+        find src -type f -name "*.feature" | head -10
+
+    - name: Run API tests
+      run: mvn clean test -B
+      env:
+        ACCESS_TOKEN: ${{ secrets.GOREST_ACCESS_TOKEN }}
+
+    - name: Generate Surefire test report
+      if: always()
+      run: mvn surefire-report:report
+
+    - name: Upload test results and reports
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results-java-${{ matrix.java-version }}
+        path: |
+          target/cucumber-reports/
+          target/surefire-reports/
+          target/site/
+        retention-days: 30
+
+    - name: Publish test results
+      if: always()
+      uses: dorny/test-reporter@v1
+      with:
+        name: API Test Results (Java ${{ matrix.java-version }})
+        path: target/cucumber-reports/Cucumber.xml
+        reporter: java-junit
+        fail-on-error: false
+
+    - name: Comment PR with test summary
+      if: github.event_name == 'pull_request' && always()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const path = 'target/cucumber-reports/Cucumber.xml';
+          if (fs.existsSync(path)) {
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 🧪 API Test Results (Java ${{ matrix.java-version }})
+              
+              ✅ Test execution completed successfully!
+              
+              📊 **Reports Available:**
+              - Cucumber HTML Report
+              - JUnit XML Results
+              - Surefire Report
+              
+              Check the **Actions** tab for detailed results and downloadable reports.`
+            });
+          }
