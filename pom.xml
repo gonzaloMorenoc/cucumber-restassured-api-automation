@@ -10,7 +10,7 @@
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <name>Cucumber RestAssured API Automation</name>
+    <n>Cucumber RestAssured API Automation</n>
     <description>Comprehensive API Test Automation Framework using Cucumber BDD, Rest Assured, and Java</description>
 
     <properties>
@@ -126,6 +126,11 @@
                     <systemPropertyVariables>
                         <cucumber.filter.tags>${cucumber.filter.tags}</cucumber.filter.tags>
                     </systemPropertyVariables>
+                    <properties>
+                        <configurationParameters>
+                            cucumber.junit-platform.naming-strategy=long
+                        </configurationParameters>
+                    </properties>
                 </configuration>
             </plugin>
 
