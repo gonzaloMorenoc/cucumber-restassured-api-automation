@@ -42,6 +42,18 @@ jobs:
         find src -type f -name "*.java" | head -20
         find src -type f -name "*.feature" | head -10
 
+    - name: Validate POM file
+      run: |
+        echo "Validating pom.xml..."
+        mvn validate
+        echo "POM validation completed"
+
+    - name: Create target directories
+      run: |
+        mkdir -p target/cucumber-reports
+        mkdir -p target/surefire-reports
+        mkdir -p target/site
+
     - name: Run API tests
       run: mvn clean test -B
       env:
@@ -50,6 +62,12 @@ jobs:
     - name: Generate Surefire test report
       if: always()
       run: mvn surefire-report:report
+
+    - name: List generated files
+      if: always()
+      run: |
+        echo "Contents of target directory:"
+        find target -type f -name "*.xml" -o -name "*.json" -o -name "*.html" | head -20
 
     - name: Upload test results and reports
       if: always()
@@ -62,8 +80,22 @@ jobs:
           target/site/
         retention-days: 30
 
-    - name: Publish test results
+    - name: Check if XML report exists
       if: always()
+      id: check_xml
+      run: |
+        if [ -f "target/cucumber-reports/Cucumber.xml" ]; then
+          echo "xml_exists=true" >> $GITHUB_OUTPUT
+          echo "✅ Cucumber XML report found"
+        else
+          echo "xml_exists=false" >> $GITHUB_OUTPUT
+          echo "❌ Cucumber XML report not found"
+          echo "Available files in target/cucumber-reports/:"
+          ls -la target/cucumber-reports/ || echo "Directory does not exist"
+        fi
+
+    - name: Publish test results
+      if: always() && steps.check_xml.outputs.xml_exists == 'true'
       uses: dorny/test-reporter@v1
       with:
         name: API Test Results (Java ${{ matrix.java-version }})
@@ -72,7 +104,7 @@ jobs:
         fail-on-error: false
 
     - name: Comment PR with test summary
-      if: github.event_name == 'pull_request' && always()
+      if: github.event_name == 'pull_request' && always() && steps.check_xml.outputs.xml_exists == 'true'
       uses: actions/github-script@v7
       with:
         script: |

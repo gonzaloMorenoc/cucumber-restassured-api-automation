@@ -17,15 +17,28 @@ public class BaseClient {
     }
 
     private static void initializeRequestSpec() {
+        String accessToken = getAccessToken();
+        
         requestSpec = new RequestSpecBuilder()
                 .setBaseUri(config.baseUrl())
                 .setContentType(ContentType.JSON)
                 .addHeader("Accept", ContentType.JSON.toString())
-                .addHeader("Authorization", "Bearer " + config.accessToken())
+                .addHeader("Authorization", "Bearer " + accessToken)
                 .build();
         
         RestAssured.requestSpecification = requestSpec;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
+    }
+    
+    private static String getAccessToken() {
+        // First try environment variable (for CI/CD)
+        String envToken = System.getenv("ACCESS_TOKEN");
+        if (envToken != null && !envToken.trim().isEmpty()) {
+            return envToken;
+        }
+        
+        // Fallback to config file
+        return config.accessToken();
     }
 
     public static RequestSpecification getRequestSpec() {
