@@ -45,9 +45,13 @@ jobs:
 
     - name: Create target directories
       run: |
-        mkdir -p target/cucumber-reports
+        mkdir -p target/cucumber-reports/html-report
+        mkdir -p target/cucumber-reports/json
+        mkdir -p target/cucumber-reports/xml
+        mkdir -p target/cucumber-reports/timeline
         mkdir -p target/surefire-reports
         mkdir -p target/site
+        mkdir -p target/logs
 
     - name: Run API tests
       run: mvn clean test -B
@@ -79,7 +83,7 @@ jobs:
       if: always()
       id: check_xml
       run: |
-        if [ -f "target/cucumber-reports/Cucumber.xml" ]; then
+        if [ -f "target/cucumber-reports/xml/Cucumber.xml" ]; then
           echo "xml_exists=true" >> $GITHUB_OUTPUT
           echo "✅ Cucumber XML report found"
         else
@@ -94,7 +98,7 @@ jobs:
       uses: dorny/test-reporter@v1
       with:
         name: API Test Results (Java 17)
-        path: target/cucumber-reports/Cucumber.xml
+        path: target/cucumber-reports/xml/Cucumber.xml
         reporter: java-junit
         fail-on-error: false
 
