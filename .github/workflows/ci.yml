@@ -11,21 +11,16 @@ on:
 jobs:
   api-tests:
     runs-on: ubuntu-latest
-    name: API Tests (Java ${{ matrix.java-version }})
-
-    strategy:
-      matrix:
-        java-version: [11, 17]
-      fail-fast: false
+    name: API Tests (Java 17)
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Set up JDK ${{ matrix.java-version }}
+    - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
-        java-version: ${{ matrix.java-version }}
+        java-version: 17
         distribution: 'temurin'
 
     - name: Cache Maven dependencies
@@ -73,7 +68,7 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: test-results-java-${{ matrix.java-version }}
+        name: test-results-java-17
         path: |
           target/cucumber-reports/
           target/surefire-reports/
@@ -98,7 +93,7 @@ jobs:
       if: always() && steps.check_xml.outputs.xml_exists == 'true'
       uses: dorny/test-reporter@v1
       with:
-        name: API Test Results (Java ${{ matrix.java-version }})
+        name: API Test Results (Java 17)
         path: target/cucumber-reports/Cucumber.xml
         reporter: java-junit
         fail-on-error: false
@@ -115,7 +110,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `## 🧪 API Test Results (Java ${{ matrix.java-version }})
+              body: `## 🧪 API Test Results (Java 17)
               
               ✅ Test execution completed successfully!
               
