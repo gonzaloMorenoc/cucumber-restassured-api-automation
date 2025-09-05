@@ -20,6 +20,8 @@ public class Hooks {
     @Before
     public void setUp(Scenario scenario) {
         System.out.println("Starting scenario: " + scenario.getName());
+        // Create report directories if they don't exist
+        createReportDirectories();
         testContext.reset();
     }
 
@@ -50,6 +52,18 @@ public class Hooks {
             }
         } catch (Exception e) {
             System.out.println("Cleanup failed: " + e.getMessage());
+        }
+    }
+
+    private void createReportDirectories() {
+        try {
+            java.nio.file.Files.createDirectories(java.nio.file.Paths.get("target/cucumber-reports/html-report"));
+            java.nio.file.Files.createDirectories(java.nio.file.Paths.get("target/cucumber-reports/json"));
+            java.nio.file.Files.createDirectories(java.nio.file.Paths.get("target/cucumber-reports/xml"));
+            java.nio.file.Files.createDirectories(java.nio.file.Paths.get("target/cucumber-reports/timeline"));
+            java.nio.file.Files.createDirectories(java.nio.file.Paths.get("target/logs"));
+        } catch (Exception e) {
+            System.out.println("Warning: Could not create report directories: " + e.getMessage());
         }
     }
 }

@@ -8,24 +8,25 @@ on:
   schedule:
     - cron: '0 8 * * *'  # Daily at 8 AM UTC
 
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+  actions: read
+
 jobs:
   api-tests:
     runs-on: ubuntu-latest
-    name: API Tests (Java ${{ matrix.java-version }})
-
-    strategy:
-      matrix:
-        java-version: [11, 17]
-      fail-fast: false
+    name: API Tests (Java 17)
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Set up JDK ${{ matrix.java-version }}
+    - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
-        java-version: ${{ matrix.java-version }}
+        java-version: 17
         distribution: 'temurin'
 
     - name: Cache Maven dependencies
@@ -50,9 +51,13 @@ jobs:
 
     - name: Create target directories
       run: |
-        mkdir -p target/cucumber-reports
+        mkdir -p target/cucumber-reports/html-report
+        mkdir -p target/cucumber-reports/json
+        mkdir -p target/cucumber-reports/xml
+        mkdir -p target/cucumber-reports/timeline
         mkdir -p target/surefire-reports
         mkdir -p target/site
+        mkdir -p target/logs
 
     - name: Run API tests
       run: mvn clean test -B
@@ -73,7 +78,7 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: test-results-java-${{ matrix.java-version }}
+        name: test-results-java-17
         path: |
           target/cucumber-reports/
           target/surefire-reports/
@@ -84,7 +89,7 @@ jobs:
       if: always()
       id: check_xml
       run: |
-        if [ -f "target/cucumber-reports/Cucumber.xml" ]; then
+        if [ -f "target/cucumber-reports/xml/Cucumber.xml" ]; then
           echo "xml_exists=true" >> $GITHUB_OUTPUT
           echo "✅ Cucumber XML report found"
         else
@@ -95,11 +100,11 @@ jobs:
         fi
 
     - name: Publish test results
-      if: always() && steps.check_xml.outputs.xml_exists == 'true'
+      if: always() && steps.check_xml.outputs.xml_exists == 'true' && github.event_name != 'pull_request'
       uses: dorny/test-reporter@v1
       with:
-        name: API Test Results (Java ${{ matrix.java-version }})
-        path: target/cucumber-reports/Cucumber.xml
+        name: API Test Results (Java 17)
+        path: target/cucumber-reports/xml/Cucumber.xml
         reporter: java-junit
         fail-on-error: false
 
@@ -115,7 +120,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `## 🧪 API Test Results (Java ${{ matrix.java-version }})
+              body: `## 🧪 API Test Results (Java 17)
               
               ✅ Test execution completed successfully!
               

@@ -10,7 +10,7 @@
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <n>Cucumber RestAssured API Automation</n>
+    <name>Cucumber RestAssured API Automation</name>
     <description>Comprehensive API Test Automation Framework using Cucumber BDD, Rest Assured, and Java</description>
 
     <properties>
