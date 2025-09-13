@@ -15,8 +15,11 @@ public class TestDataGenerator {
         String firstName = FIRST_NAMES[random.nextInt(FIRST_NAMES.length)];
         String lastName = LAST_NAMES[random.nextInt(LAST_NAMES.length)];
         String name = firstName + " " + lastName;
+        
+        long timestamp = System.currentTimeMillis();
         String email = firstName.toLowerCase() + "." + lastName.toLowerCase() + 
-                      random.nextInt(1000) + "@testmail.com";
+                      "." + timestamp + "@testmail.com";
+                      
         String gender = GENDERS[random.nextInt(GENDERS.length)];
         String status = STATUSES[random.nextInt(STATUSES.length)];
         

@@ -34,11 +34,15 @@ public class BaseClient {
         // First try environment variable (for CI/CD)
         String envToken = System.getenv("ACCESS_TOKEN");
         if (envToken != null && !envToken.trim().isEmpty()) {
+            System.out.println("Using environment token");
             return envToken;
         }
         
         // Fallback to config file
-        return config.accessToken();
+        String configToken = config.accessToken();
+        System.out.println("Using config file token: " + 
+            (configToken != null ? configToken.substring(0, 10) + "..." : "null"));
+        return configToken;
     }
 
     public static RequestSpecification getRequestSpec() {

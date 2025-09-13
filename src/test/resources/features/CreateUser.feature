@@ -18,10 +18,10 @@ Feature: Create User API
   @regression @data-driven
   Scenario: Create a user with specific data
     Given I have user data with the following details:
-      | name         | John Doe              |
-      | email        | john.doe@testmail.com |
-      | gender       | male                  |
-      | status       | active                |
+      | name         | John Doe                           |
+      | email        | john.doe.${timestamp}@testmail.com |
+      | gender       | male                               |
+      | status       | active                             |
     When I send a POST request to create the user
     Then the response status code should be 201
     And the response should contain the user with name "John Doe"
