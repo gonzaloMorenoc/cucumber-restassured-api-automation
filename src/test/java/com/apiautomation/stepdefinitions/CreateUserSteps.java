@@ -75,7 +75,16 @@ public class CreateUserSteps {
     @When("I send a POST request to create the user")
     public void iSendAPOSTRequestToCreateTheUser() {
         User user = testContext.getUser();
+        System.out.println("Creating user: " + user);
+        
         Response response = userClient.createUser(user);
+        
+        if (response.getStatusCode() >= 400) {
+            System.out.println("Request failed with status: " + response.getStatusCode());
+            System.out.println("Response body: " + response.getBody().asString());
+            System.out.println("Request headers: " + response.getHeaders());
+        }
+        
         testContext.setResponse(response);
         
         if (response.getStatusCode() == 201) {
